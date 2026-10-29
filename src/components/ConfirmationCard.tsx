@@ -32,6 +32,7 @@ export const ConfirmationCard = ({
   const [isSendingNow, setIsSendingNow] = useState(false);
   const [sendNowError, setSendNowError] = useState<string | null>(null);
   const [sendNowSuccess, setSendNowSuccess] = useState<string | null>(null);
+  const [isSandboxDelivery, setIsSandboxDelivery] = useState<boolean>(false);
 
   const deliveryDateObj = new Date(letterData.deliverAt);
   const formattedDeliveryDate = deliveryDateObj.toLocaleDateString('en-US', {
@@ -109,7 +110,19 @@ export const ConfirmationCard = ({
 
       if (data?.success) {
         setLetterStatus('delivered');
-        setSendNowSuccess(`Letter successfully sent to ${letterData.recipientEmail}! Check your Gmail.`);
+        const isSandbox = data.isSandbox || data.provider === 'ethereal' || data.provider === 'console' || Boolean(data.previewUrl);
+        setIsSandboxDelivery(isSandbox);
+
+        if (isSandbox) {
+          setSendNowSuccess(
+            data.message || `Dispatched to test sandbox (Ethereal). Real delivery requires Gmail App Password or Resend API key in Vercel.`
+          );
+        } else {
+          setSendNowSuccess(
+            data.message || `Letter successfully sent to ${letterData.recipientEmail}! Check your inbox.`
+          );
+        }
+
         if (data.previewUrl) {
           setPreviewUrl(data.previewUrl);
         }
@@ -285,10 +298,23 @@ export const ConfirmationCard = ({
 
         {/* Immediate Delivery Banner / Feedback */}
         {sendNowSuccess && (
-          <div style={{ width: '100%', maxWidth: '580px', padding: '14px 18px', background: '#EEF8EC', border: '1.5px solid #B0D9A9', borderRadius: '10px', color: '#1D5A19', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '580px',
+            padding: '14px 18px',
+            background: isSandboxDelivery ? '#FFF8EB' : '#EEF8EC',
+            border: `1.5px solid ${isSandboxDelivery ? '#F0CD8D' : '#B0D9A9'}`,
+            borderRadius: '10px',
+            color: isSandboxDelivery ? '#7C5209' : '#1D5A19',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
             <CheckCircle2 size={22} style={{ flexShrink: 0 }} />
             <div>
-              <strong style={{ display: 'block', fontSize: '1rem' }}>Dispatched to Gmail!</strong>
+              <strong style={{ display: 'block', fontSize: '1rem' }}>
+                {isSandboxDelivery ? '📬 Sandbox Test Preview' : '✉️ Dispatched to Inbox!'}
+              </strong>
               <span style={{ fontSize: '0.9rem' }}>{sendNowSuccess}</span>
             </div>
           </div>

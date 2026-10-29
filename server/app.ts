@@ -344,10 +344,14 @@ app.post('/api/letters/:id/send-now', rateLimiter, async (req: Request, res: Res
         ],
       });
 
+      const isRealDelivery = sendResult.provider === 'smtp' || sendResult.provider === 'resend';
       return res.json({
         success: true,
-        message: `Letter dispatched successfully to ${letter.recipient_email}!`,
+        message: isRealDelivery
+          ? `Letter dispatched successfully to ${letter.recipient_email}!`
+          : `Letter generated in test sandbox (Ethereal). To deliver to a real inbox, configure Gmail App Password or Resend in Vercel.`,
         provider: sendResult.provider,
+        isSandbox: !isRealDelivery,
         previewUrl: sendResult.previewUrl,
         viewUrl,
         viewToken: letter.view_token || letter.id,
@@ -615,7 +619,16 @@ app.post('/api/letters/send-test', rateLimiter, async (req: Request, res: Respon
       return res.status(500).json(result);
     }
     const viewUrl = getLetterViewUrl(testLetter);
-    res.json({ ...result, viewUrl, viewToken: testToken });
+    const isRealDelivery = result.provider === 'smtp' || result.provider === 'resend';
+    res.json({
+      ...result,
+      isSandbox: !isRealDelivery,
+      message: isRealDelivery
+        ? `Test letter dispatched directly to ${testLetter.recipient_email}!`
+        : `Sent to test sandbox preview (Ethereal). Real emails require Gmail/Resend credentials in Vercel.`,
+      viewUrl,
+      viewToken: testToken,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to dispatch test letter' });
   }

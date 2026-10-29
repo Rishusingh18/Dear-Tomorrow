@@ -390,6 +390,7 @@ export async function sendLetterEmail(letter: LetterRecord): Promise<SendResult>
       messageId: info.messageId,
       previewUrl,
       provider: 'ethereal',
+      error: 'Sent to Ethereal sandbox preview only. Real inbox delivery requires Gmail SMTP or Resend credentials in environment variables.',
     };
   } catch (err: any) {
     console.warn(`[Email] Could not create Ethereal transporter, falling back to simulated log delivery:`, err?.message);
@@ -397,6 +398,7 @@ export async function sendLetterEmail(letter: LetterRecord): Promise<SendResult>
       success: true,
       messageId: `sim_${Date.now()}`,
       provider: 'console',
+      error: 'Simulated delivery only. Real inbox delivery requires Gmail SMTP or Resend credentials in environment variables.',
     };
   }
 }
