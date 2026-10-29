@@ -598,7 +598,7 @@ app.post('/api/letters/send-test', rateLimiter, async (req: Request, res: Respon
         INSERT OR REPLACE INTO letters (
           id, recipient_email, recipient_name, sender_name, view_token, title, content, 
           deliver_at, timezone, status, created_at, attempts
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'delivered', ?, 1)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'delivered', ?, 1)
       `,
       args: [
         testLetter.id,
